@@ -29,7 +29,7 @@ try:
         pwd_parse = True
     else:
         pwd_parse = False
-    odbc = MySQL(pwd_parse=pwd_parse)
+    odbc = MySQL()
      
     
     #%% odbc env variables
@@ -58,6 +58,7 @@ try:
         except Exception as e:
             e = str(e)
             error_string += e + '\n\n'
+            logger.warning(e)
 
 
     #%% Success Email
@@ -80,15 +81,16 @@ try:
 except Exception as e:
     e = str(e) + error_string
     logger.critical(f'{e}\n', exc_info=True)
-    to_email_addresses = os.getenv('Error_ToEmail')
+    to_email_addresses = os.getenv('email_fail')
     body = f'Error running package {package_name}\nError message:\n{e}'
     SendEmail(to_email_addresses=to_email_addresses
                         , subject=f'Python Error - {package_name}'
                         , body=body
                         , attach_file_address=logger.handlers[0].baseFilename
-                        , user=os.getenv('yagmail_user')
-                        , password=os.getenv('yagmail_password')
+                        , user=os.getenv('yagmail_uid')
+                        , password=os.getenv('yagmail_pwd')
                         )
 
+    e = e.replace("'", "")
     sql = f"CALL ztpPythonLogging ('{package_name}', 0, '{e}')"
     odbc.run(sql)
