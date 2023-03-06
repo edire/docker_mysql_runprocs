@@ -4,8 +4,8 @@ import socket
 host_name = socket.gethostname()
 if host_name == 'powerhouse':
     from dotenv import load_dotenv
-    load_dotenv('./.env')
-    load_dotenv('../.env')
+    load_dotenv('./daily.env')
+    # load_dotenv('./15min.env')
 
 
 #%% Imports
@@ -16,29 +16,19 @@ import dlogging
 from demail.gmail import SendEmail
 
 
-package_name = os.path.basename(__file__)
+package_name = os.getenv('package_name')
 logger = dlogging.NewLogger(__file__, use_cd=True)
 error_string = ''
+
 
 #%% odbc connector
     
 odbc = SQL()
-    
-
-#%% odbc env variables
-
-logger.info('Gather env dataframe')
-
-df_env = odbc.read('select * from ztlRunProcsDirector_EnvList')
-for s in range(df_env.shape[0]):
-    os.environ[df_env.at[s, 'env_name']] = df_env.at[s, 'env_value']
-    
-package_name = os.getenv('package_name')
 
 
 #%% odbc proc director
 
-director_table = os.getenv('sql_scrape_director_tbl')
+director_table = os.getenv('sql_director_tbl')
 proc_list = odbc.read(f'SELECT proc FROM {director_table} ORDER BY sort_by;')['proc'].to_list()
 
 
@@ -60,12 +50,13 @@ if error_string == '':
     sql = f"CALL ztpPythonLogging ('{package_name}', 1, NULL);"
     odbc.run(sql)
     
-    SendEmail(to_email_addresses = os.getenv('email_send')
-              , subject=f'{package_name} Complete'
-              , body=f'Data successfully updated for {package_name}!'
-              , user=os.getenv('email_uid')
-              , password=os.getenv('email_pwd')
-              )
+    if os.getenv('email_success_send') == 1:
+        SendEmail(to_email_addresses = os.getenv('email_success')
+                , subject=f'{package_name} Complete'
+                , body=f'Data successfully updated for {package_name}!'
+                , user=os.getenv('email_uid')
+                , password=os.getenv('email_pwd')
+                )
     
 else:
     e = error_string.replace("'", "")
