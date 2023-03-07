@@ -50,7 +50,7 @@ if error_string == '':
     sql = f"CALL ztpPythonLogging ('{package_name}', 1, NULL);"
     odbc.run(sql)
     
-    if os.getenv('email_success_send') == 1:
+    if os.getenv('email_success_send') == 'yes':
         SendEmail(to_email_addresses = os.getenv('email_success')
                 , subject=f'{package_name} Complete'
                 , body=f'Data successfully updated for {package_name}!'
