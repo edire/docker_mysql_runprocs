@@ -5,7 +5,7 @@ import dlogging
 from demail.gmail import SendEmail
 
 
-package_name = os.path.basename(__file__)
+package_name = os.getenv('package_name')
 logger = dlogging.NewLogger(__file__, use_cd=True)
 logger.info('Beginning package')
 
@@ -21,7 +21,7 @@ except Exception as e:
     e = str(e)
     logger.critical(f'{e}\n', exc_info=True)
     SendEmail(to_email_addresses=os.getenv('email_fail')
-                        , subject=f'Python Error - {package_name}'
+                        , subject=f'Error - {package_name}'
                         , body=e
                         , attach_file_address=logger.handlers[0].baseFilename
                         , user=os.getenv('email_uid')
